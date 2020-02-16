@@ -1,0 +1,34 @@
+spring:
+  profiles:
+    active: ${LOGGING_MODE:dev}
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true
+
+client:
+  default-uri: ${HIS_BASE_URL:https://localhost/oru}
+  user:
+    name: ${HIS_USER:test}
+    password: ${HIS_PASSWORD:test}
+
+redcap:
+  base:
+    url: ${REDCAP_BASE_URL:https://redcap.clinic.cat/api/}
+  paprika:
+    token: ${REDCAP_TOKEN:9A3730B202CCAB21582569C915D9EE52}
+    instrument:
+      report:
+        inclusion: informe_dinclusi_al_programa
+        discharge: informe_de_tancament_de_programa
+    format: json
+    type: flat
+    xml:
+      format: xml
+      type: eav
+  listener:
+    timer: 60000
+    
+fhir:
+  base:
+    url: ${FHIR_BASE_URL:http://localhost:8080/hapi-fhir/baseDstu3}
+

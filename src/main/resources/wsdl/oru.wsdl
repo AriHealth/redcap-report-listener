@@ -1,0 +1,388 @@
+<wsdl:definitions name="SI_PROXY_DocumentsGenerics_IN_SYNC" targetNamespace="http://csc.es/xi/DocumentsGenerics" xmlns:p1="http://csc.es/xi/DocumentsGenerics" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+	<wsdl:documentation/>
+	<wsp:UsingPolicy wsdl:required="true"/>
+	<wsp:Policy wsu:Id="OP_SI_PROXY_DocumentsGenerics_IN_SYNC"/>
+	<wsdl:types>
+		<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+			<xsd:element name="ORU_R01">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="MSH" minOccurs="0">
+							<xsd:complexType>
+								<xsd:sequence>
+									<xsd:element name="MSH.1" type="xsd:string" minOccurs="0"/>
+									<xsd:element name="MSH.2" type="xsd:string" minOccurs="0"/>
+									<xsd:element name="MSH.4" minOccurs="0">
+										<xsd:complexType>
+											<xsd:sequence>
+												<xsd:element name="HD.1" type="xsd:string" minOccurs="0"/>
+											</xsd:sequence>
+										</xsd:complexType>
+									</xsd:element>
+									<xsd:element name="MSH.5" minOccurs="0">
+										<xsd:complexType>
+											<xsd:sequence>
+												<xsd:element name="HD.1" type="xsd:string" minOccurs="0"/>
+											</xsd:sequence>
+										</xsd:complexType>
+									</xsd:element>
+									<xsd:element name="MSH.7" minOccurs="0">
+										<xsd:complexType>
+											<xsd:sequence>
+												<xsd:element name="TS.1" type="xsd:string" minOccurs="0"/>
+											</xsd:sequence>
+										</xsd:complexType>
+									</xsd:element>
+									<xsd:element name="MSH.9" minOccurs="0">
+										<xsd:complexType>
+											<xsd:sequence>
+												<xsd:element name="MSG.1" type="xsd:string" minOccurs="0"/>
+												<xsd:element name="MSG.2" type="xsd:string" minOccurs="0"/>
+												<xsd:element name="MSG.3" type="xsd:string" minOccurs="0"/>
+											</xsd:sequence>
+										</xsd:complexType>
+									</xsd:element>
+									<xsd:element name="MSH.10" type="xsd:string" minOccurs="0"/>
+									<xsd:element name="MSH.11" minOccurs="0">
+										<xsd:complexType>
+											<xsd:sequence>
+												<xsd:element name="PT.1" type="xsd:string" minOccurs="0"/>
+											</xsd:sequence>
+										</xsd:complexType>
+									</xsd:element>
+									<xsd:element name="MSH.12" minOccurs="0">
+										<xsd:complexType>
+											<xsd:sequence>
+												<xsd:element name="VID.1" type="xsd:string" minOccurs="0"/>
+											</xsd:sequence>
+										</xsd:complexType>
+									</xsd:element>
+								</xsd:sequence>
+							</xsd:complexType>
+						</xsd:element>
+						<xsd:element name="ORU_R01.PATIENT_RESULT" minOccurs="0">
+							<xsd:complexType>
+								<xsd:sequence>
+									<xsd:element name="ORU_R01.PATIENT" minOccurs="0">
+										<xsd:complexType>
+											<xsd:sequence>
+												<xsd:element name="PID" minOccurs="0">
+													<xsd:complexType>
+														<xsd:sequence>
+															<xsd:element name="PID.3" minOccurs="0" maxOccurs="unbounded">
+																<xsd:complexType>
+																	<xsd:sequence>
+																		<xsd:element name="CX.1" type="xsd:string" minOccurs="0"/>
+																		<xsd:element name="CX.4" minOccurs="0">
+																			<xsd:complexType>
+																				<xsd:sequence>
+																					<xsd:element name="HD.1" type="xsd:string" minOccurs="0"/>
+																				</xsd:sequence>
+																			</xsd:complexType>
+																		</xsd:element>
+																		<xsd:element name="CX.5" type="xsd:string" minOccurs="0"/>
+																	</xsd:sequence>
+																</xsd:complexType>
+															</xsd:element>
+															<xsd:element name="PID.5" minOccurs="0">
+																<xsd:complexType>
+																	<xsd:sequence>
+																		<xsd:element name="XPN.1" minOccurs="0">
+																			<xsd:complexType>
+																				<xsd:sequence>
+																					<xsd:element name="FN.1" type="xsd:string" minOccurs="0"/>
+																				</xsd:sequence>
+																			</xsd:complexType>
+																		</xsd:element>
+																		<xsd:element name="XPN.2" type="xsd:string" minOccurs="0"/>
+																	</xsd:sequence>
+																</xsd:complexType>
+															</xsd:element>
+															<xsd:element name="PID.6" minOccurs="0">
+																<xsd:complexType>
+																	<xsd:sequence>
+																		<xsd:element name="XPN.1" minOccurs="0">
+																			<xsd:complexType>
+																				<xsd:sequence>
+																					<xsd:element name="FN.1" type="xsd:string" minOccurs="0"/>
+																				</xsd:sequence>
+																			</xsd:complexType>
+																		</xsd:element>
+																	</xsd:sequence>
+																</xsd:complexType>
+															</xsd:element>
+															<xsd:element name="PID.7" minOccurs="0">
+																<xsd:complexType>
+																	<xsd:sequence>
+																		<xsd:element name="TS.1" type="xsd:string" minOccurs="0"/>
+																	</xsd:sequence>
+																</xsd:complexType>
+															</xsd:element>
+															<xsd:element name="PID.8" type="xsd:string" minOccurs="0"/>
+														</xsd:sequence>
+													</xsd:complexType>
+												</xsd:element>
+												<xsd:element name="ORU_R01.VISIT" minOccurs="0">
+													<xsd:complexType>
+														<xsd:sequence>
+															<xsd:element name="PV1" minOccurs="0">
+																<xsd:complexType>
+																	<xsd:sequence>
+																		<xsd:element name="PV1.2" type="xsd:string" minOccurs="0"/>
+																		<xsd:element name="PV1.19" minOccurs="0">
+																			<xsd:complexType>
+																				<xsd:sequence>
+																					<xsd:element name="CX.1" type="xsd:string" minOccurs="0"/>
+																					<xsd:element name="CX.2" type="xsd:string" minOccurs="0"/>
+																				</xsd:sequence>
+																			</xsd:complexType>
+																		</xsd:element>
+																	</xsd:sequence>
+																</xsd:complexType>
+															</xsd:element>
+														</xsd:sequence>
+													</xsd:complexType>
+												</xsd:element>
+											</xsd:sequence>
+										</xsd:complexType>
+									</xsd:element>
+									<xsd:element name="ORU_R01.ORDER_OBSERVATION" minOccurs="0">
+										<xsd:complexType>
+											<xsd:sequence>
+												<xsd:element name="ORU_R01.COMMON_ORDER" minOccurs="0">
+													<xsd:complexType>
+														<xsd:sequence>
+															<xsd:element name="ORC" minOccurs="0">
+																<xsd:complexType>
+																	<xsd:sequence>
+																		<xsd:element name="ORC.1" type="xsd:string" minOccurs="0"/>
+																		<xsd:element name="ORC.2" minOccurs="0">
+																			<xsd:complexType>
+																				<xsd:sequence>
+																					<xsd:element name="EI.2" type="xsd:string" minOccurs="0"/>
+																				</xsd:sequence>
+																			</xsd:complexType>
+																		</xsd:element>
+																		<xsd:element name="ORC.3" minOccurs="0">
+																			<xsd:complexType>
+																				<xsd:sequence>
+																					<xsd:element name="EI.2" type="xsd:string" minOccurs="0"/>
+																				</xsd:sequence>
+																			</xsd:complexType>
+																		</xsd:element>
+																		<xsd:element name="ORC.9" minOccurs="0">
+																			<xsd:complexType>
+																				<xsd:sequence>
+																					<xsd:element name="TS.1" type="xsd:string" minOccurs="0"/>
+																				</xsd:sequence>
+																			</xsd:complexType>
+																		</xsd:element>
+																		<xsd:element name="ORC.12" minOccurs="0">
+																			<xsd:complexType>
+																				<xsd:sequence>
+																					<xsd:element name="XCN.1" type="xsd:string" minOccurs="0"/>
+																				</xsd:sequence>
+																			</xsd:complexType>
+																		</xsd:element>
+																	</xsd:sequence>
+																</xsd:complexType>
+															</xsd:element>
+														</xsd:sequence>
+													</xsd:complexType>
+												</xsd:element>
+												<xsd:element name="OBR" minOccurs="0">
+													<xsd:complexType>
+														<xsd:sequence>
+															<xsd:element name="OBR.2" minOccurs="0">
+																<xsd:complexType>
+																	<xsd:sequence>
+																		<xsd:element name="EI.2" type="xsd:string" minOccurs="0"/>
+																	</xsd:sequence>
+																</xsd:complexType>
+															</xsd:element>
+															<xsd:element name="OBR.3" minOccurs="0">
+																<xsd:complexType>
+																	<xsd:sequence>
+																		<xsd:element name="EI.2" type="xsd:string" minOccurs="0"/>
+																	</xsd:sequence>
+																</xsd:complexType>
+															</xsd:element>
+															<xsd:element name="OBR.4" minOccurs="0">
+																<xsd:complexType>
+																	<xsd:sequence>
+																		<xsd:element name="EI.1" type="xsd:string" minOccurs="0"/>
+																		<xsd:element name="EI.2" type="xsd:string" minOccurs="0"/>
+																	</xsd:sequence>
+																</xsd:complexType>
+															</xsd:element>
+															<xsd:element name="OBR.7" minOccurs="0">
+																<xsd:complexType>
+																	<xsd:sequence>
+																		<xsd:element name="TS.1" type="xsd:string" minOccurs="0"/>
+																	</xsd:sequence>
+																</xsd:complexType>
+															</xsd:element>
+														</xsd:sequence>
+													</xsd:complexType>
+												</xsd:element>
+												<xsd:element name="ORU_R01.OBSERVATION" minOccurs="0">
+													<xsd:complexType>
+														<xsd:sequence>
+															<xsd:element name="OBX" minOccurs="0">
+																<xsd:complexType>
+																	<xsd:sequence>
+																		<xsd:element name="OBX.2" type="xsd:string" minOccurs="0"/>
+																		<xsd:element name="OBX.3" minOccurs="0">
+																			<xsd:complexType>
+																				<xsd:sequence>
+																					<xsd:element name="CE.1" type="xsd:string" minOccurs="0"/>
+																					<xsd:element name="CE.2" type="xsd:string" minOccurs="0"/>
+																				</xsd:sequence>
+																			</xsd:complexType>
+																		</xsd:element>
+																		<xsd:element name="OBX.5" minOccurs="0">
+																			<xsd:complexType>
+																				<xsd:sequence>
+																					<xsd:element name="ED.2" type="xsd:string" minOccurs="0"/>
+																					<xsd:element name="ED.3" type="xsd:string" minOccurs="0"/>
+																					<xsd:element name="ED.4" type="xsd:string" minOccurs="0"/>
+																					<xsd:element name="ED.5" type="xsd:string" minOccurs="0"/>
+																				</xsd:sequence>
+																			</xsd:complexType>
+																		</xsd:element>
+																		<xsd:element name="OBX.10" type="xsd:string" minOccurs="0"/>
+																		<xsd:element name="OBX.11" type="xsd:string" minOccurs="0"/>
+																		<xsd:element name="OBX.15" type="xsd:string" minOccurs="0"/>
+																		<xsd:element name="OBX.16" type="xsd:string" minOccurs="0"/>
+																		<xsd:element name="OBX.19" minOccurs="0">
+																			<xsd:complexType>
+																				<xsd:sequence>
+																					<xsd:element name="TS.1" type="xsd:string" minOccurs="0"/>
+																				</xsd:sequence>
+																			</xsd:complexType>
+																		</xsd:element>
+																	</xsd:sequence>
+																</xsd:complexType>
+															</xsd:element>
+														</xsd:sequence>
+													</xsd:complexType>
+												</xsd:element>
+											</xsd:sequence>
+										</xsd:complexType>
+									</xsd:element>
+								</xsd:sequence>
+							</xsd:complexType>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="ACK">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="MSH" minOccurs="0">
+							<xsd:complexType>
+								<xsd:sequence>
+									<xsd:element name="MSH.1" type="xsd:string" minOccurs="0"/>
+									<xsd:element name="MSH.2" type="xsd:string" minOccurs="0"/>
+									<xsd:element name="MSH.7" minOccurs="0">
+										<xsd:complexType>
+											<xsd:sequence>
+												<xsd:element name="TS.1" type="xsd:string" minOccurs="0"/>
+											</xsd:sequence>
+										</xsd:complexType>
+									</xsd:element>
+									<xsd:element name="MSH.9" minOccurs="0">
+										<xsd:complexType>
+											<xsd:sequence>
+												<xsd:element name="MSG.1" type="xsd:string" minOccurs="0"/>
+												<xsd:element name="MSG.2" type="xsd:string" minOccurs="0"/>
+											</xsd:sequence>
+										</xsd:complexType>
+									</xsd:element>
+									<xsd:element name="MSH.11" minOccurs="0">
+										<xsd:complexType>
+											<xsd:sequence>
+												<xsd:element name="PT.1" type="xsd:string" minOccurs="0"/>
+											</xsd:sequence>
+										</xsd:complexType>
+									</xsd:element>
+									<xsd:element name="MSH.12" minOccurs="0">
+										<xsd:complexType>
+											<xsd:sequence>
+												<xsd:element name="VID.1" type="xsd:string" minOccurs="0"/>
+											</xsd:sequence>
+										</xsd:complexType>
+									</xsd:element>
+								</xsd:sequence>
+							</xsd:complexType>
+						</xsd:element>
+						<xsd:element name="MSA" minOccurs="0">
+							<xsd:complexType>
+								<xsd:sequence>
+									<xsd:element name="MSA.1" type="xsd:string" minOccurs="0"/>
+									<xsd:element name="MSA.2" type="xsd:string" minOccurs="0"/>
+								</xsd:sequence>
+							</xsd:complexType>
+						</xsd:element>
+						<xsd:element name="ERR" minOccurs="0">
+							<xsd:complexType>
+								<xsd:sequence>
+									<xsd:element name="ERR.3" minOccurs="0">
+										<xsd:complexType>
+											<xsd:sequence>
+												<xsd:element name="CWE.1" type="xsd:string" minOccurs="0"/>
+												<xsd:element name="CWE.2" type="xsd:string" minOccurs="0"/>
+												<xsd:element name="CWE.3" type="xsd:string" minOccurs="0"/>
+											</xsd:sequence>
+										</xsd:complexType>
+									</xsd:element>
+									<xsd:element name="ERR.4" type="xsd:string" minOccurs="0"/>
+									<xsd:element name="ERR.7" type="xsd:string" minOccurs="0"/>
+								</xsd:sequence>
+							</xsd:complexType>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="xmln.ORU_R01">
+		<wsdl:documentation/>
+		<wsdl:part name="ORU_R01" element="ORU_R01" xmlns=""/>
+	</wsdl:message>
+	<wsdl:message name="xmln.ACK">
+		<wsdl:documentation/>
+		<wsdl:part name="ACK" element="ACK" xmlns=""/>
+	</wsdl:message>
+	<wsdl:portType name="SI_PROXY_DocumentsGenerics_IN_SYNC">
+		<wsdl:documentation/>
+		<wsdl:operation name="SI_PROXY_DocumentsGenerics_IN_SYNC">
+			<wsdl:documentation/>
+			<wsp:Policy>
+				<wsp:PolicyReference URI="#OP_SI_PROXY_DocumentsGenerics_IN_SYNC"/>
+			</wsp:Policy>
+			<wsdl:input message="p1:xmln.ORU_R01"/>
+			<wsdl:output message="p1:xmln.ACK"/>
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="SI_PROXY_DocumentsGenerics_IN_SYNCBinding" type="p1:SI_PROXY_DocumentsGenerics_IN_SYNC">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+		<wsdl:operation name="SI_PROXY_DocumentsGenerics_IN_SYNC">
+			<soap:operation soapAction="http://sap.com/xi/WebService/soap1.1" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+			<wsdl:input>
+				<soap:body use="literal" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="SI_PROXY_DocumentsGenerics_IN_SYNCService">
+		<wsdl:port name="HTTP_Port" binding="p1:SI_PROXY_DocumentsGenerics_IN_SYNCBinding">
+			<soap:address location="http://hcbvpolxqas.csc.es:50000/XISOAPAdapter/MessageServlet?senderParty=&amp;senderService=BC_DOC&amp;receiverParty=&amp;receiverService=&amp;interface=SI_PROXY_DocumentsGenerics_IN_SYNC&amp;interfaceNamespace=http%3A%2F%2Fcsc.es%2Fxi%2FDocumentsGenerics" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+		</wsdl:port>
+		<wsdl:port name="HTTPS_Port" binding="p1:SI_PROXY_DocumentsGenerics_IN_SYNCBinding">
+			<soap:address location="https://hcbvpolxqas.csc.es:50001/XISOAPAdapter/MessageServlet?senderParty=&amp;senderService=BC_DOC&amp;receiverParty=&amp;receiverService=&amp;interface=SI_PROXY_DocumentsGenerics_IN_SYNC&amp;interfaceNamespace=http%3A%2F%2Fcsc.es%2Fxi%2FDocumentsGenerics" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>
