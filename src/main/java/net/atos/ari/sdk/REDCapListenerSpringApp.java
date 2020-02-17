@@ -127,8 +127,7 @@ public class REDCapListenerSpringApp {
                                         
                             try {
                                 logger.info("NHC: {}", nhc);
-                                //ACK response = client.setORU((String)nhc, sapId);
-                                // Episode from ORM -> <OBR.2><EI.1>
+
                                 ACK response = client.setORU((String)nhc, patient);
                                 if (response != null) {
                                     if ("AR".equalsIgnoreCase(response.getMSA().getMSA1()) )
