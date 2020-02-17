@@ -229,30 +229,4 @@ public class FHIRListenerService implements ListenerService {
         return obs;
     }
 
-    /**
-     * Get an HL7 FHIR Practitioner object given the Id
-     * 
-     * @param Practitioner Id SAP
-     * @return Practitioner content
-     */
-    public Practitioner getPractitioner(String id) {
-
-        // Perform a search of the organization given the id
-        Bundle results = client.search()
-            .forResource(Practitioner.class)
-            .where(Practitioner.IDENTIFIER.exactly()
-                .code(id))
-            .returnBundle(Bundle.class)
-            .execute();
-
-        Practitioner pra = null;
-        // Obtain the Practitioner by Id
-        for (BundleEntryComponent entry : results.getEntry()) {
-            pra = (Practitioner) entry.getResource();
-            logger.info("Practitioner found: {}", 
-                pra.getNameFirstRep().getGivenAsSingleString());
-        }
-        return pra;
-    }
-
 }
