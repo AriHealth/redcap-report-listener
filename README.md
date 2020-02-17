@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/AriHealth/redcap-report-listener.svg?branch=master)](https://travis-ci.org/AriHealth/redcap-report-listener) 
 [![codecov.io](https://codecov.io/gh/AriHealth/redcap-report-listener/branch/master/graphs/badge.svg)](http://codecov.io/gh/AriHealth/redcap-report-listener)
-[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=net.atos.ari:redcap-report-listener&metric=alert_status)](https://sonarcloud.io/dashboard/index/net.atos.ari:redcap-report-listener)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=net.atos.ari:redcap-report-listener&metric=alert_status)](https://sonarcloud.io/dashboard/index/net.atos.ari.sdk:redcap-report-listener)
 [![Docker Build](https://img.shields.io/docker/cloud/build/arihealth/redcap-report-listener)](https://cloud.docker.com/u/arihealth/repository/docker/arihealth/redcap-report-listener)
 [![Docker Pulls](https://img.shields.io/docker/pulls/arihealth/redcap-report-listener)](https://cloud.docker.com/u/arihealth/repository/docker/arihealth/redcap-report-listener)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
