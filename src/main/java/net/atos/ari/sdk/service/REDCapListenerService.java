@@ -73,40 +73,39 @@ public class REDCapListenerService implements ListenerService {
 
     public static final Logger logger = LoggerFactory.getLogger(REDCapListenerService.class);
     private final static String DATE_FORMAT_PREHAB = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
-    
+
+    private static final String COMPLETE_LOCKED = "2";
+    private static final String COMPLETE_STR = "_complete";
+
     /** REDCap base url path. */
     @Value("${redcap.base.url}")
     private String baseUrl;
 
-    /** REDCap token for PAPRIKA. */
-    @Value("${redcap.paprika.token}")
+    /** REDCap token for the project. */
+    @Value("${redcap.project.token}")
     private String token;
 
-    /** REDCap inclusion report instrument for PAPRIKA. */
-    @Value("${redcap.paprika.instrument.report.inclusion}")
-    private String instrumentInclusion;
-
-    /** REDCap discharge report instrument for PAPRIKA. */
-    @Value("${redcap.paprika.instrument.report.discharge}")
-    private String instrumentDischarge;
-
-    /** REDCap format for PAPRIKA. */
-    @Value("${redcap.paprika.format}")
+    /** REDCap format for the project. */
+    @Value("${redcap.project.format}")
     private String format;
 
-    /** REDCap token for PAPRIKA. */
-    @Value("${redcap.paprika.type}")
+    /** REDCap token for the project. */
+    @Value("${redcap.project.type}")
     private String type;
 
-    /** REDCap format for PAPRIKA. */
-    @Value("${redcap.paprika.xml.format}")
+    /** REDCap format for the project. */
+    @Value("${redcap.project.xml.format}")
     private String xmlFormat;
 
-    /** REDCap token for PAPRIKA. */
-    @Value("${redcap.paprika.xml.type}")
+    /** REDCap token for the project. */
+    @Value("${redcap.project.xml.type}")
     private String xmlType;    
     
     public Map<String, Object> export() {
+        return new HashMap<String, Object>();
+    }
+
+    public Map<String, Object> export(String instrument) {
         
         List<NameValuePair> params = new ArrayList<NameValuePair>();
         params.add(new BasicNameValuePair("token", token));
@@ -116,7 +115,7 @@ public class REDCapListenerService implements ListenerService {
         params.add(new BasicNameValuePair("fields", 
             new ArrayList<String>(Arrays.asList("nhc", "record_id")).toString()));
         params.add(new BasicNameValuePair("forms", 
-            new ArrayList<String>(Arrays.asList(instrumentInclusion, instrumentDischarge)).toString()));
+            new ArrayList<String>(Arrays.asList(instrument)).toString()));
         params.add(new BasicNameValuePair("rawOrLabel", "raw"));
         params.add(new BasicNameValuePair("rawOrLabelHeaders", "raw"));
         params.add(new BasicNameValuePair("exportCheckboxLabel", "false"));
@@ -129,7 +128,6 @@ public class REDCapListenerService implements ListenerService {
 
         String result = null;
         int respCode = 200;
-        Map <String, Object> response = new HashMap<String, Object>();
 
         try {
             post.setEntity(new UrlEncodedFormEntity(params));
@@ -165,15 +163,16 @@ public class REDCapListenerService implements ListenerService {
             return null;
         }
 
-        JsonArray jsonArray = (JsonArray) parser.parse(result);
+        Map <String, Object> response = new HashMap<String, Object>();
        
         //Iterating the contents of the array
+        JsonArray jsonArray = (JsonArray) parser.parse(result);
         Iterator<JsonElement> iterator = jsonArray.iterator();
         while(iterator.hasNext()) {
             JsonObject jsonObject = iterator.next().getAsJsonObject();
             
             // Instrument fisioterpia_basal complete and locked
-            if ( "2".equals(jsonObject.get(instrumentInclusion + "_complete").getAsString()) )
+            if ( COMPLETE_LOCKED.equals(jsonObject.get(instrument + COMPLETE_STR).getAsString()) )
                 response.put(jsonObject.get("record_id").getAsString(),
                     jsonObject.get("nhc").getAsString());
         }
