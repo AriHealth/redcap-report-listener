@@ -70,7 +70,7 @@ public class Client extends WebServiceGatewaySupport {
     private static final String SOURCE_CIP = "http://cip.org";
     private static final String SOURCE_SAP_ORDER = "http://sap-internal.org";
     
-    public ORUR01 createORU(String nhcPatient, Patient fhirPatient) {
+    public ORUR01 createORU(String nhcPatient, Patient fhirPatient, String reportName) {
         
 
         String sapId = "", cip = "", episode = "", placeOrder = "";
@@ -302,11 +302,8 @@ public class Client extends WebServiceGatewaySupport {
         OBX3 obx3 = new OBX3();
         obx3.setCE1("MODALITAT DEL DOCUMENT");
         
-        // TODO
-        // Send as parameter the name of the document
-        
         // Name of the document
-        obx3.setCE2("DESCRIPCIO");
+        obx3.setCE2(reportName);
         obx.setOBX3(obx3);
 
         // Observation Value
@@ -324,8 +321,9 @@ public class Client extends WebServiceGatewaySupport {
         // Producer's Reference
         obx.setOBX15("");
 
-        String doctorSapId = fhirPatient.getGeneralPractitionerFirstRep()
-            .getDisplay();
+        // String doctorSapId = fhirPatient.getGeneralPractitionerFirstRep()
+        //    .getDisplay();
+        String doctorSapId = "0000082641";
         
         // Responsible Observer
         obx.setOBX16(doctorSapId);
@@ -364,9 +362,9 @@ public class Client extends WebServiceGatewaySupport {
     }
 
     @SuppressWarnings("unchecked")
-    public ACK setORU(String nhc, Patient patient) {
+    public ACK setORU(String nhc, Patient patient, String reportName) {
         
-        ORUR01 oruObject = createORU(nhc, patient);
+        ORUR01 oruObject = createORU(nhc, patient, reportName);
 
         // TODO
         // Save the file with CIP or NHC, plus date

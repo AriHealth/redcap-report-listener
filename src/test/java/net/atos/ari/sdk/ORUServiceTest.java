@@ -19,6 +19,6 @@ public class ORUServiceTest {
     @Test
     @Ignore
     public void givenORU_whenServiceStarts_thenReturnOK() {
-        ORUR01 oruObject = client.createORU("", new Patient());
+        ORUR01 oruObject = client.createORU("", new Patient(), "");
     }
 }

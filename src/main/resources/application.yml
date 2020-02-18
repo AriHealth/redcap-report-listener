@@ -13,20 +13,19 @@ client:
 
 redcap:
   base:
-    url: ${REDCAP_BASE_URL:https://redcap.clinic.cat/api/}
-  paprika:
-    token: ${REDCAP_TOKEN:9A3730B202CCAB21582569C915D9EE52}
-    instrument:
-      report:
-        inclusion: informe_dinclusi_al_programa
-        discharge: informe_de_tancament_de_programa
-    format: json
-    type: flat
+    url: ${REDCAP_BASE_URL:https://redcap.localhost/api/}
+  project:
+    token: ${REDCAP_TOKEN:token}
+    report:
+      instruments: ${REDCAP_REPORT_INSTRUMENTS:informe_dinclusi_al_programa,informe_de_tancament_de_programa}
+      names: ${REDCAP_REPORT_NAMES:Informe inclusion PREHAB,Informe fin PREHAB}
+    format: ${REDCAP_FORMAT:json}
+    type:  ${REDCAP_TYPE:flat}
     xml:
-      format: xml
-      type: eav
+      format:  ${REDCAP_XML_FORMAT:xml}
+      type:  ${REDCAP_XML_TYPE:eav}
   listener:
-    timer: 60000
+    timer:  ${REDCAP_LISTENER:60000}
     
 fhir:
   base:
