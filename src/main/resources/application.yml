@@ -37,8 +37,8 @@ fhir:
     url: ${FHIR_BASE_URL:http://localhost:8080/hapi-fhir-jpaserver/fhir/}
   encounter:
     codes: ${FHIR_ENCOUNTER_CODES:769681006,275647001}
-    display: ${FHIR_ENCOUNTER_DISPLAYS:First patient encounter,Discharged from follow-up}
+    displays: ${FHIR_ENCOUNTER_DISPLAYS:First patient encounter,Discharged from follow-up}
   document:
     codes: ${FHIR_DOCUMENT_CODES:47039-3,28655-9}
-    display: ${FHIR_DOCUMENT_DISPLAYS:Hospital Admission history and physical note,Discharge Summary from Responsible Clinician}
+    displays: ${FHIR_DOCUMENT_DISPLAYS:Hospital Admission history and physical note,Discharge Summary from Responsible Clinician}
 
