@@ -25,15 +25,31 @@
 
 package net.atos.ari.sdk.service;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.maven.model.Organization;
+import org.hl7.fhir.dstu3.model.Attachment;
 import org.hl7.fhir.dstu3.model.Bundle;
 import org.hl7.fhir.dstu3.model.Bundle.BundleEntryComponent;
+import org.hl7.fhir.dstu3.model.Bundle.BundleType;
+import org.hl7.fhir.dstu3.model.Bundle.HTTPVerb;
+import org.hl7.fhir.dstu3.model.CodeableConcept;
 import org.hl7.fhir.dstu3.model.Coding;
 import org.hl7.fhir.dstu3.model.DateTimeType;
+import org.hl7.fhir.dstu3.model.DocumentReference;
+import org.hl7.fhir.dstu3.model.Encounter;
+import org.hl7.fhir.dstu3.model.Encounter.EncounterStatus;
+import org.hl7.fhir.dstu3.model.DocumentReference.DocumentReferenceContentComponent;
+import org.hl7.fhir.dstu3.model.DocumentReference.DocumentReferenceContextComponent;
+import org.hl7.fhir.dstu3.model.DocumentReference.ReferredDocumentStatus;
+import org.hl7.fhir.dstu3.model.Enumerations.DocumentReferenceStatus;
+import org.hl7.fhir.dstu3.model.EpisodeOfCare;
+import org.hl7.fhir.dstu3.model.Identifier;
 import org.hl7.fhir.dstu3.model.Observation;
 import org.hl7.fhir.dstu3.model.Observation.ObservationStatus;
 import org.slf4j.Logger;
@@ -56,21 +72,19 @@ public class FHIRListenerService implements ListenerService {
 
     private static final Logger logger = LoggerFactory.getLogger(FHIRListenerService.class);
 
-    private final String LOINC = "http://loinc.org";
-    private final String UCUM = "http://unitsofmeasure.org";
-    private final String LOINC_CODE = "55423-8";
-    private final String LOINC_DISPLAY = "Number of steps in unspecified time Pedometer";
-    private final String LOINC_TEXT = "Step Count";
-    private final String UCUM_UNITS = "steps/day";
-    private final String UCUM_UNITS_CODE = "{steps}/d";
-
-    private final String CATEGORY = "https://www.hl7.org/fhir/valueset-observation-category.html";
     private final String CATEGORY_CODE = "activity";
-    private final String CATEGORY_DISPLAY = "Activity";
+    private final String CLINIC = "http://clinic.org";
+
+    private final String PREHAB_CODE = "http://clinic.org";
+    private final String PREHAB_DISPLAY = "http://clinic.org";
 
     /** FHIR base url path. */
     @Value("${fhir.base.url}")
     private String fhirUrl;
+
+    /** REDCap language. */
+    @Value("${redcap.language}")
+    private String language;
 
     private final FhirContext ctx = FhirContext.forDstu3();
 
@@ -98,10 +112,6 @@ public class FHIRListenerService implements ListenerService {
     }
 
     public void execute(Bundle bundle) {
-
-        ctx.newXmlParser()
-            .setPrettyPrint(true)
-            .encodeResourceToString(bundle);
 
         Bundle resp = client.transaction()
             .withBundle(bundle)
@@ -145,7 +155,6 @@ public class FHIRListenerService implements ListenerService {
 
         Bundle observations = client.search()
             .forResource(Observation.class)
-            .limitTo(1000)
             .where(Observation.SUBJECT.hasId(id))
             .where(Observation.CATEGORY.exactly()
                 .code(CATEGORY_CODE))
@@ -161,72 +170,202 @@ public class FHIRListenerService implements ListenerService {
     }
 
     /**
-    * Create an HL7 FHIR Observation object 
+    * Create an HL7 FHIR DocumentReference object 
      * 
      * @param subjectId
-     * @param val
-     * @param Date start
-     * @param Date end
-     * @param boolean prescribe
-     * @return Observation object created
+     * @param docId
+     * @param title
+     * @param description
+     * @param orgId
+     * @param practId
+     * @param encounterId
+     * @param encodedBytes
+     * @return DocumentReference object created
      */
-    public Observation createObservation(String subjectId, Double val, 
-        Date start, Date end, boolean prescribe) {
-        Observation obs = new Observation();
+    public DocumentReference createDocumentReference(String subjectId, String docId, String title,
+        String description, String orgId, String practId, String encounterId, Coding code, byte[] encodedBytes) {
 
-        obs.addCategory()
-            .addCoding()
-            .setSystem(CATEGORY)
-            .setCode(CATEGORY_CODE)
-            .setDisplay(CATEGORY_DISPLAY);
+        DocumentReference docRef = new DocumentReference();
 
-        obs.getCode()
-            .addCoding()
-            .setSystem(LOINC)
-            .setCode(LOINC_CODE)
-            .setDisplay(LOINC_DISPLAY);
-        obs.getCode()
-            .setText(LOINC_TEXT);
+        CodeableConcept docCode = new CodeableConcept();
+        
+        List<Coding> codings = new ArrayList<Coding>();
+        docCode.addCoding(code);
+        
+        docRef.setType(docCode);
+        
+        List<Identifier> identifiers = new ArrayList<Identifier>();
+        Identifier id = new Identifier();
+        id.setSystem(CLINIC);
+        id.setValue(docId);
+        identifiers.add(id);
+        docRef.setIdentifier(identifiers);
+        
+        // Attach the document
+        List<DocumentReferenceContentComponent> contents = 
+            new ArrayList<DocumentReferenceContentComponent>();
+        
+        DocumentReferenceContentComponent contentComp =
+            new DocumentReferenceContentComponent();
+        
+        Attachment attachment = new Attachment();
+        attachment.setContentType("application/pdf");
+        attachment.setLanguage(language);
+        attachment.setTitle(title);
+        attachment.setData(encodedBytes);
+        
+        contentComp.setAttachment(attachment);
+        
+        contents.add(contentComp);
+        docRef.setContent(contents);
 
-        if (prescribe)
-            obs.getCode()
-                .addCoding()
-                .setSystem("http://hl7.org/fhir/observation-statistics")
-                .setCode("maximum")
-                .setDisplay("Maximum");
-
-        if (val != null) {
-            Quantity value = new Quantity();
-            value.setSystem(UCUM)
-                .setUnit(UCUM_UNITS)
-                .setCode(UCUM_UNITS_CODE)
-                .setValue(val);
-
-            obs.setValue(value);
+        docRef.setId(IdDt.newRandomUuid());
+        docRef.setCreated(new Date());
+        docRef.setAuthenticator(new Reference(practId));
+        docRef.setCustodian(new Reference(orgId));
+        docRef.setDescription(description);
+        docRef.setDocStatus(ReferredDocumentStatus.FINAL);
+        docRef.setSubject(new Reference(subjectId));
+        
+        if (encounterId != null) {
+            DocumentReferenceContextComponent ctxComponent = 
+                new DocumentReferenceContextComponent();
+            ctxComponent.setEncounter(new Reference(encounterId));
+            
+            ctxComponent.addEvent().addCoding()
+                .setSystem("http://terminology.hl7.org/ValueSet/v3-ActCode")
+                .setCode("PHYRHB")
+                .setDisplay("Physical Rehab")            ;
+            
+            CodeableConcept facility = new CodeableConcept();
+            facility.addCoding()
+                .setSystem("http://hl7.org/fhir/ValueSet/c80-facilitycodes")
+                .setCode("80522000")
+                .setDisplay("Hospital-rehabilitation");
+            ctxComponent.setFacilityType(facility);
+            
+            CodeableConcept practice = new CodeableConcept();
+            practice.addCoding()
+                .setSystem("http://hl7.org/fhir/ValueSet/c80-practice-codes")
+                .setCode("394602003")
+                .setDisplay("Rehabilitation");
+            ctxComponent.setPracticeSetting(practice);
+            
+            docRef.setContext(ctxComponent);
         }
-        obs.setId(IdDt.newRandomUuid());
-
-        Date today = null;
-        if (start == null)
-            today = new Date();
-        else
-            today = start;
-
-        Period period = new Period();
-        period.setStart(today);
-        if (end != null)
-            period.setEnd(end);
-
-        obs.setEffective(period);
-
-        if (prescribe)
-            obs.setStatus(ObservationStatus.REGISTERED);
-        else
-            obs.setStatus(ObservationStatus.FINAL);
-
-        obs.setSubject(new Reference(subjectId));
-
-        return obs;
+        
+        return docRef;
     }
 
+
+    /**
+     * Check if the patient has pdf documents in FHIR
+     * 
+     * @param Clinic patient NHC
+     * @return boolean true if is prescribed, false if not
+     */
+    public boolean getDocumentReference(String id, String docCode) {
+
+        Bundle documents = client.search()
+            .forResource(DocumentReference.class)
+            .where(DocumentReference.SUBJECT.hasId(id))
+            .where(DocumentReference.IDENTIFIER.exactly()
+                .code(docCode))
+            .returnBundle(Bundle.class)
+            .execute();
+
+        if (documents.getEntry()
+            .size() > 0)
+            return true;
+        return false;
+    }
+    
+    /**
+    * Create an HL7 FHIR DocumentReference object 
+     * 
+     * @param subjectId
+     * @param docId
+     * @param title
+     * @param description
+     * @param orgId
+     * @param practId
+     * @param encounterId
+     * @param encodedBytes
+     * @return DocumentReference object created
+     */
+    public Encounter createEncounter(String subjectId, Coding type) {
+
+        Encounter enc = new Encounter();
+
+        Coding code = new Coding();
+        code.setSystem("http://terminology.hl7.org/CodeSystem/v3-ActCode");
+        code.setCode("AMB");
+        code.setDisplay("ambulatory");
+        enc.setClass_(code);
+        
+        enc.addType().addCoding(type);
+        
+        // PREHAB Code
+        Coding prehab = new Coding();
+        prehab.setSystem(CLINIC);
+        prehab.setDisplay(PREHAB_CODE);
+        prehab.setCode(PREHAB_DISPLAY);
+        enc.addType().addCoding(prehab);
+        
+        enc.setId(IdDt.newRandomUuid());
+        
+        Period period = new Period();
+        period.setStart(new Date());
+        period.setEnd(new Date());
+        
+        EncounterStatus status = EncounterStatus.FINISHED;
+        enc.setStatus(status);
+
+        return enc;        
+    }
+
+    /**
+     * Get the Encounter based on the id of the patient and the code inserted
+     * 
+     * @param Patient id
+     * @param Encounter type
+     * @return the Encounter if it is found, null if not
+     */
+    public Encounter getEncounter(String id, String type) {
+
+        Bundle encounters = client.search()
+            .forResource(Encounter.class)
+            .where(Encounter.SUBJECT.hasId(id))
+            .where(Encounter.TYPE.exactly()
+                .code(type))
+            .returnBundle(Bundle.class)
+            .execute();
+
+        Encounter response = null;
+        for (BundleEntryComponent entry : encounters.getEntry())
+            response = (Encounter) entry.getResource();
+
+        return response;
+    }
+
+    /**
+     * Get the first Episode Of Care inserted in the patient
+     * 
+     * @param Patient id
+     * @return the EpisodeOfCare if it is found, null if not
+     */
+    public EpisodeOfCare getFirstEpisode(String id) {
+
+        Bundle episodes = client.search()
+            .forResource(EpisodeOfCare.class)
+            .where(EpisodeOfCare.PATIENT.hasId(id))
+            .returnBundle(Bundle.class)
+            .execute();
+
+        EpisodeOfCare response = null;
+        for (BundleEntryComponent entry : episodes.getEntry())
+            response = (EpisodeOfCare) entry.getResource();
+
+        return response;
+    }
 }

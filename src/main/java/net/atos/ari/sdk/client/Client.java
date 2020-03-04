@@ -17,6 +17,7 @@ import org.hl7.fhir.dstu3.model.Identifier;
 import org.hl7.fhir.dstu3.model.Patient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ws.client.core.support.WebServiceGatewaySupport;
 
 import net.atos.ari.sdk.oru.ACK;
@@ -69,6 +70,10 @@ public class Client extends WebServiceGatewaySupport {
     private static final String SOURCE_EPISODE = "http://episode.org";
     private static final String SOURCE_CIP = "http://cip.org";
     private static final String SOURCE_SAP_ORDER = "http://sap-internal.org";
+    
+
+    @Value("${his.doctor.id}")
+    private String defaultDoctorId;
     
     public ORUR01 createORU(String nhcPatient, Patient fhirPatient, String reportName) {
         
@@ -321,9 +326,10 @@ public class Client extends WebServiceGatewaySupport {
         // Producer's Reference
         obx.setOBX15("");
 
-        // String doctorSapId = fhirPatient.getGeneralPractitionerFirstRep()
-        //    .getDisplay();
-        String doctorSapId = "0000082641";
+        String doctorSapId = defaultDoctorId;
+        if (fhirPatient.getGeneralPractitionerFirstRep() != null)
+            doctorSapId = fhirPatient.getGeneralPractitionerFirstRep()
+                .getDisplay();
         
         // Responsible Observer
         obx.setOBX16(doctorSapId);
@@ -362,24 +368,9 @@ public class Client extends WebServiceGatewaySupport {
     }
 
     @SuppressWarnings("unchecked")
-    public ACK setORU(String nhc, Patient patient, String reportName) {
+    public ACK setORU(String nhc, Patient patient, String reportName, byte[] encodedBytes) {
         
         ORUR01 oruObject = createORU(nhc, patient, reportName);
-
-        // TODO
-        // Save the file with CIP or NHC, plus date
-        
-        // Set the Base64 PDF
-        byte[] input_file = null;
-        try {
-            input_file = Files.readAllBytes(Paths.get("export.pdf"));
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            logger.error(e.getMessage());
-        }
-
-        byte[] encodedBytes = Base64.getEncoder()
-            .encode(input_file);
 
         String pdfInBase64 = new String(encodedBytes);
 

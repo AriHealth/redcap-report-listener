@@ -63,11 +63,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import net.atos.ari.sdk.model.REDCapItem;
-import net.atos.ari.sdk.model.REDCapRecord;
-
-import org.springframework.stereotype.Service;
-
 @Component
 public class REDCapListenerService implements ListenerService {
 
@@ -99,30 +94,42 @@ public class REDCapListenerService implements ListenerService {
 
     /** REDCap token for the project. */
     @Value("${redcap.project.xml.type}")
-    private String xmlType;    
-    
+    private String xmlType;
+
     public Map<String, Object> export() {
         return new HashMap<String, Object>();
     }
 
+    public void manageError(int respCode, String result) {
+        JsonParser parser = new JsonParser();
+        if (respCode != 301) {
+            JsonObject obj = (JsonObject) parser.parse(result);
+
+            if (obj.get("error") != null) {
+                String error = obj.get("error")
+                    .getAsString();
+                logger.error(error);
+            }
+        } else
+            logger.error("Moved Permanently");
+    }
+
     public Map<String, Object> export(String instrument) {
-        
+
         List<NameValuePair> params = new ArrayList<NameValuePair>();
         params.add(new BasicNameValuePair("token", token));
         params.add(new BasicNameValuePair("content", "record"));
         params.add(new BasicNameValuePair("format", format));
         params.add(new BasicNameValuePair("type", type));
-        params.add(new BasicNameValuePair("fields", 
-            new ArrayList<String>(Arrays.asList("nhc", "record_id")).toString()));
-        params.add(new BasicNameValuePair("forms", 
-            new ArrayList<String>(Arrays.asList(instrument)).toString()));
+        params.add(new BasicNameValuePair("fields", new ArrayList<String>(Arrays.asList("nhc", "record_id")).toString()));
+        params.add(new BasicNameValuePair("forms", new ArrayList<String>(Arrays.asList(instrument)).toString()));
         params.add(new BasicNameValuePair("rawOrLabel", "raw"));
         params.add(new BasicNameValuePair("rawOrLabelHeaders", "raw"));
         params.add(new BasicNameValuePair("exportCheckboxLabel", "false"));
         params.add(new BasicNameValuePair("exportSurveyFields", "false"));
         params.add(new BasicNameValuePair("exportDataAccessGroups", "false"));
         params.add(new BasicNameValuePair("returnFormat", "json"));
-        
+
         HttpPost post = new HttpPost(baseUrl);
         post.setHeader("Content-Type", "application/x-www-form-urlencoded");
 
@@ -142,58 +149,52 @@ public class REDCapListenerService implements ListenerService {
                 .getContent()));
             result = reader.lines()
                 .collect(Collectors.joining());
+
+            if (respCode != 200) {
+                manageError(respCode, resp.getStatusLine()
+                    .getReasonPhrase());
+                return null;
+            }        
         } catch (final Exception e) {
             logger.error(e.getMessage(), e);
             return null;
         }
 
         JsonParser parser = new JsonParser();
-        if (respCode != 200) {
-            if (respCode != 301) {
-                JsonObject obj = (JsonObject) parser.parse(result);
-    
-                if (obj.get("error") != null) {
-                    String error = obj.get("error")
-                        .getAsString();
-                    logger.error(error);
-                }
-            }
-            else
-                logger.error("Moved Permanently");
-            return null;
-        }
+        Map<String, Object> response = new HashMap<String, Object>();
 
-        Map <String, Object> response = new HashMap<String, Object>();
-       
-        //Iterating the contents of the array
+        // Iterating the contents of the array
         JsonArray jsonArray = (JsonArray) parser.parse(result);
         Iterator<JsonElement> iterator = jsonArray.iterator();
-        while(iterator.hasNext()) {
-            JsonObject jsonObject = iterator.next().getAsJsonObject();
-            
+        while (iterator.hasNext()) {
+            JsonObject jsonObject = iterator.next()
+                .getAsJsonObject();
+
             // Instrument fisioterpia_basal complete and locked
-            if ( COMPLETE_LOCKED.equals(jsonObject.get(instrument + COMPLETE_STR).getAsString()) )
-                response.put(jsonObject.get("record_id").getAsString(),
-                    jsonObject.get("nhc").getAsString());
+            if (COMPLETE_LOCKED.equals(jsonObject.get(instrument + COMPLETE_STR)
+                .getAsString()))
+                response.put(jsonObject.get("record_id")
+                    .getAsString(),
+                    jsonObject.get("nhc")
+                        .getAsString());
         }
 
         return response;
     }
 
-    public boolean exportPDF(String id, String instrument) {
+    public byte[] exportPDF(String id, String instrument) {
         logger.info("REDCapId: {} Instrument: {}", id, instrument);
-        
+
         List<NameValuePair> params = new ArrayList<NameValuePair>();
         params.add(new BasicNameValuePair("token", token));
         params.add(new BasicNameValuePair("content", "pdf"));
         params.add(new BasicNameValuePair("record", id));
         params.add(new BasicNameValuePair("instrument", instrument));
         params.add(new BasicNameValuePair("returnFormat", "json"));
-        
+
         HttpPost post = new HttpPost(baseUrl);
         post.setHeader("Content-Type", "application/x-www-form-urlencoded");
 
-        String result = null;
         int respCode = 200;
 
         try {
@@ -201,24 +202,31 @@ public class REDCapListenerService implements ListenerService {
             HttpClient client = HttpClientBuilder.create()
                 .build();
             HttpResponse resp = client.execute(post);
-            if (resp != null)
-                respCode = resp.getStatusLine()
-                    .getStatusCode();
+            if (resp == null)
+                return null;
+            respCode = resp.getStatusLine()
+                .getStatusCode();
+
+            if (respCode != 200) {
+                manageError(respCode, resp.getStatusLine()
+                    .getReasonPhrase());
+                return null;
+            }
+
+            InputStream is = resp.getEntity()
+                .getContent();
+            // FileOutputStream fos = new FileOutputStream(new File("export.pdf"));
+            //int read;
+            //final byte[] buf = new byte[4096];
+            //while ((read = is.read(buf)) > 0)
+                // fos.write(buf, 0, read);
+            // fos.close();
+            // is.close();
             
-            if (respCode != 200)
-                return false;
-            
-            InputStream is = resp.getEntity().getContent();
-            FileOutputStream fos = new FileOutputStream(new File("export.pdf"));
-            int read;
-            final byte[] buf = new byte[4096];
-            while ((read = is.read(buf)) > 0)
-                fos.write(buf, 0, read);
-            fos.close(); is.close();
-            return true;
+            return is.readAllBytes();
         } catch (final Exception e) {
             logger.error(e.getMessage(), e);
-            return false;
+            return null;
         }
-    }   
+    }
 }

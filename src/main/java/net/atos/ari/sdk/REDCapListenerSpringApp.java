@@ -30,20 +30,21 @@ import net.atos.ari.sdk.oru.ACK;
 import net.atos.ari.sdk.service.FHIRListenerService;
 import net.atos.ari.sdk.service.REDCapListenerService;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.Base64;
 import java.util.Map;
-
-import javax.xml.bind.JAXBException;
 
 import org.hl7.fhir.dstu3.model.Bundle;
 import org.hl7.fhir.dstu3.model.Identifier;
 import org.hl7.fhir.dstu3.model.Observation;
 import org.hl7.fhir.dstu3.model.Patient;
 import org.hl7.fhir.dstu3.model.Practitioner;
+import org.hl7.fhir.dstu3.model.Reference;
 import org.hl7.fhir.dstu3.model.Bundle.BundleType;
 import org.hl7.fhir.dstu3.model.Bundle.HTTPVerb;
+import org.hl7.fhir.dstu3.model.Coding;
+import org.hl7.fhir.dstu3.model.DocumentReference;
+import org.hl7.fhir.dstu3.model.Encounter;
+import org.hl7.fhir.dstu3.model.EpisodeOfCare;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,13 +55,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.ws.WebServiceException;
 
+import com.google.common.collect.ImmutableMap;
+
 @SpringBootApplication
 public class REDCapListenerSpringApp {
 
     private static final Logger logger = LoggerFactory.getLogger(REDCapListenerSpringApp.class);
-    
-    int i=0;
-    
+
+    int i = 0;
+
     /** Timer to wait until the next execution. */
     @Value("${redcap.listener.timer}")
     private Long timer;
@@ -68,17 +71,38 @@ public class REDCapListenerSpringApp {
     /** REDCap report instruments for the project. */
     @Value("${redcap.project.report.instruments}")
     private String[] instruments;
-    
+
     /** REDCap report names for the project. */
     @Value("${redcap.project.report.names}")
     private String[] names;
-    
+
+    /** FHIR codes of the Encounter. */
+    @Value("${fhir.encounter.codes}")
+    private String[] encCodes;
+
+    /** FHIR displays of the Encounter. */
+    @Value("${fhir.encounter.displays}")
+    private String[] encDisplays;
+
+    /** FHIR codes of the Document. */
+    @Value("${fhir.document.codes}")
+    private String[] docCodes;
+
+    /** FHIR displays of the Document. */
+    @Value("${fhir.document.displays}")
+    private String[] docDisplays;
+
+    private final String LOINC = "http://loinc.org";
+    private final String SNOMED = "http://snomed.info/sct";
+
     @Autowired
     private REDCapListenerService redcap;
 
     @Autowired
     private FHIRListenerService fhir;
     
+    String fhirId = null;
+
     public static void main(String[] args) {
         SpringApplication.run(REDCapListenerSpringApp.class);
     }
@@ -91,11 +115,9 @@ public class REDCapListenerSpringApp {
             // Create a new REST client for FHIR
             fhir.configure();
 
-            // while (true) {
+            while (true) {
                 for (i=0; i < instruments.length; i++ ) {
                     
-                    logger.info("Instrument {} Name {}", instruments[i], names[i]);
-
                     // Retrieve the records with fisioterapia_basal instrument complete and locked
                     Map<String, Object> records = redcap.export(instruments[i]);
                     if (records != null)
@@ -103,70 +125,100 @@ public class REDCapListenerSpringApp {
                             logger.info("Record: {} NHC: {}", id, nhc);
     
                             // Retrieve the patient from Health Data Hub
-                            Patient patient = fhir.getPatient((String)nhc);
+                            Patient patient = fhir.getPatient(id);
     
                             // Get the FHIR Id to interact with
                             if (patient != null) {
                                 
-                                String fhirId = patient.getIdElement()
+                                fhirId = patient.getIdElement()
                                     .getIdPart();
                             
-                                /* if (fhir.getDocumentReference(fhirId, docName) == false) {
+                                if (fhir.getDocumentReference(fhirId, instruments[i]) == false) {
     
-                                    logger.info("No pdf document in FHIR"); */
-                                
-                                if (redcap.exportPDF(id, instruments[i]) == true) {
-                                /*    Date dateToday = new Date();
-        
-                                    logger.info("Creating the Document for patient: " + fhirId);
-        
-                                    DocumentReference docRef = fhir.createDocumentReference("Patient/" + fhirId, 
-                                        instrument, dateToday);
-        
-                                    Bundle bundle = new Bundle();
-                                    bundle.setType(BundleType.TRANSACTION);
-        
-                                    bundle.addEntry()
-                                        .setFullUrl(obs.getId())
-                                        .setResource(obs)
-                                        .getRequest()
-                                        .setMethod(HTTPVerb.POST);
-        
-                                    fhir.execute(bundle); */
-                                                
-                                    try {
-                                        logger.info("NHC: {}", nhc);
-        
-                                        ACK response = client.setORU((String)nhc, patient, names[i]);
-                                        if (response != null) {
-                                            if ("AR".equalsIgnoreCase(response.getMSA().getMSA1()) )
-                                                logger.info("CODE: {} ERROR: {}", response.getMSA().getMSA1(),
-                                                    response.getERR().getERR3().getCWE2());
-                                            else
-                                                logger.info("CODE: {} DESCRIPTION: {}",response.getMSA().getMSA1()
-                                                    + response.getMSA().getMSA2() );
-                        
-                                        }
-                                    } catch (WebServiceException e) {
-                                        logger.error(e.getMessage());
-                                    }
+                                    logger.info("No pdf document in FHIR"); 
                                     
-                                    try {
-                                        Thread.sleep(timer * 4); // 2 minutes to check again to give FHIR room to update the changes
-                                    } catch (InterruptedException e) {
-                                        logger.error(e.getMessage());
-                                    }                            
+                                    byte [] encodedBytes = null;
+                                    encodedBytes = redcap.exportPDF(id, instruments[i]);
+                                    if (encodedBytes != null) {
+
+                                        Bundle bundle = new Bundle();
+                                        bundle.setType(BundleType.TRANSACTION);        
+
+                                        byte[] encoded64Bytes = Base64.getEncoder()
+                                            .encode(encodedBytes);
+                                        
+                                        String practId = patient.getGeneralPractitionerFirstRep().getDisplay();
+                                        String orgId = patient.getManagingOrganization().getDisplay();
+                                        
+                                        Encounter encounter = fhir.getEncounter(fhirId, encCodes[i]);
+                                        String encounterId = null;
+                                        if (encounter != null)
+                                            encounterId = encounter.getIdElement().getIdPart();
+                                        else {
+                                            Coding encCoding = new Coding().setSystem(SNOMED)
+                                                .setCode(encCodes[i]).setDisplay(encDisplays[i]); 
+                                            encounter = fhir.createEncounter("Patient/" + fhirId, encCoding);
+                                            EpisodeOfCare episode = fhir.getFirstEpisode(fhirId);
+                                            encounter.addEpisodeOfCare(new Reference(episode.getIdElement().getValue()));
+                                            
+                                            encounterId = encounter.getIdElement().getValue();
+
+                                            bundle.addEntry()
+                                            .setFullUrl(encounter.getIdElement().getValue())
+                                            .setResource(encounter)
+                                                .getRequest()
+                                                .setMethod(HTTPVerb.POST);
+                                        }
+                                        
+                                        Coding docCoding = new Coding().setSystem(LOINC)
+                                            .setCode(docCodes[i]).setDisplay(docDisplays[i]); 
+                                        DocumentReference docRef = fhir.createDocumentReference("Patient/" + fhirId, 
+                                            instruments[i], names[i], names[i], orgId, practId, "Encounter/" + encounterId,
+                                            docCoding, encoded64Bytes);
+                                        
+                                        bundle.addEntry()
+                                        .setFullUrl(docRef.getIdElement().getValue())
+                                        .setResource(docRef)
+                                            .getRequest()
+                                            .setMethod(HTTPVerb.POST);
+                                        
+                                        fhir.execute(bundle);
+                                        
+                                        if (docRef != null) {
+                                                    
+                                            try {
+                                                logger.info("NHC: {}", nhc);
+                
+                                                ACK response = client.setORU((String)nhc, patient, names[i], encodedBytes);
+                                                if (response != null) {
+                                                    if ("AR".equalsIgnoreCase(response.getMSA().getMSA1()) )
+                                                        logger.info("CODE: {} ERROR: {}", response.getMSA().getMSA1(),
+                                                            response.getERR().getERR3().getCWE2());
+                                                    else
+                                                        logger.info("CODE: {} DESCRIPTION: {}",response.getMSA().getMSA1(),
+                                                            response.getMSA().getMSA2() );
+                                
+                                                }
+                                            } catch (WebServiceException e) {
+                                                logger.error(e.getMessage());
+                                            }
+                                            
+                                            // 2 minutes to check again to give FHIR room to update the changes
+                                            try {
+                                                Thread.sleep(timer * 4);
+                                            } catch (InterruptedException e) {
+                                                logger.error(e.getMessage());
+                                            }
+                                        }
+                                    }
                                 }
-    
-                            }
-    
-                            /*} else
-                                logger.info("Pdf report {} already stored for patient {}", instrument, fhirId); */
+                            } else
+                                logger.info("Pdf report {} already stored for patient {}", instruments[i], fhirId); 
                         });
                 }
 
                 Thread.sleep(timer); // Half a minute to check again
-            // }
+            }
 
         };
     }
