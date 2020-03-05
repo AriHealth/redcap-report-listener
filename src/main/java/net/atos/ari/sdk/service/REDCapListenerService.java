@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -216,14 +217,17 @@ public class REDCapListenerService implements ListenerService {
             InputStream is = resp.getEntity()
                 .getContent();
             // FileOutputStream fos = new FileOutputStream(new File("export.pdf"));
-            //int read;
-            //final byte[] buf = new byte[4096];
-            //while ((read = is.read(buf)) > 0)
-                // fos.write(buf, 0, read);
-            // fos.close();
-            // is.close();
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             
-            return is.readAllBytes();
+            int read;
+            final byte[] buf = new byte[4096];
+            while ((read = is.read(buf)) > 0)
+                buffer.write(buf, 0, read);
+            
+            buffer.close();
+            is.close();
+            
+            return buffer.toByteArray();
         } catch (final Exception e) {
             logger.error(e.getMessage(), e);
             return null;
