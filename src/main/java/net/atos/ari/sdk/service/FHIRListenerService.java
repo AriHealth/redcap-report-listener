@@ -75,8 +75,8 @@ public class FHIRListenerService implements ListenerService {
     private final String CATEGORY_CODE = "activity";
     private final String CLINIC = "http://clinic.org";
 
-    private final String PREHAB_CODE = "http://clinic.org";
-    private final String PREHAB_DISPLAY = "http://clinic.org";
+    private final String PREHAB_CODE = "102PH";
+    private final String PREHAB_DISPLAY = "VISITA PRE-HABILITACIO";
 
     /** FHIR base url path. */
     @Value("${fhir.base.url}")

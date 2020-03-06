@@ -12,7 +12,9 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
+import org.hl7.fhir.dstu3.model.Encounter;
 import org.hl7.fhir.dstu3.model.Enumerations.AdministrativeGender;
+import org.hl7.fhir.dstu3.model.EpisodeOfCare;
 import org.hl7.fhir.dstu3.model.Identifier;
 import org.hl7.fhir.dstu3.model.Patient;
 import org.slf4j.Logger;
@@ -67,29 +69,38 @@ public class Client extends WebServiceGatewaySupport {
     
 
     private static final String SOURCE_ORU = "http://orusap.org";
-    private static final String SOURCE_EPISODE = "http://episode.org";
+    private static final String SOURCE_EPISODE = "ANE";
     private static final String SOURCE_CIP = "http://cip.org";
-    private static final String SOURCE_SAP_ORDER = "http://sap-internal.org";
-    
+    private static final String SOURCE_SAP_ORDER = "HCPB";
+    // private static final String SOURCE_SAP_ORDER = "http://sap-internal.org";
 
     @Value("${his.doctor.id}")
     private String defaultDoctorId;
     
-    public ORUR01 createORU(String nhcPatient, Patient fhirPatient, String reportName) {
+    public ORUR01 createORU(String nhcPatient, Patient fhirPatient, 
+        Encounter encounter, EpisodeOfCare episodeOfCare, String reportName) {
         
 
         String sapId = "", cip = "", episode = "", placeOrder = "";
+        if (episodeOfCare != null)
+            for (Identifier mpi : episodeOfCare.getIdentifier()) {
+                if (SOURCE_EPISODE.equalsIgnoreCase(mpi.getSystem()) == true)
+                    episode = mpi.getValue();
+            }
+        
         for (Identifier mpi : fhirPatient.getIdentifier()) {
             if (SOURCE_ORU.equalsIgnoreCase(mpi.getSystem()) == true)
                 sapId = mpi.getValue();
             if (SOURCE_CIP.equalsIgnoreCase(mpi.getSystem()) == true)
                 cip = mpi.getValue();
-            if (SOURCE_EPISODE.equalsIgnoreCase(mpi.getSystem()) == true)
-                episode = mpi.getValue();
-            if (SOURCE_SAP_ORDER.equalsIgnoreCase(mpi.getSystem()) == true)
-                placeOrder = mpi.getValue();
         }
-        
+
+        if (encounter != null)
+            for (Identifier mpi : encounter.getIdentifier()) {
+                if (SOURCE_SAP_ORDER.equalsIgnoreCase(mpi.getSystem()) == true)
+                    placeOrder = mpi.getValue();
+            }
+
         ORUR01 oruObject = new ORUR01();
 
         MSH msh = new MSH();
@@ -368,9 +379,11 @@ public class Client extends WebServiceGatewaySupport {
     }
 
     @SuppressWarnings("unchecked")
-    public ACK setORU(String nhc, Patient patient, String reportName, byte[] encodedBytes) {
+    public ACK setORU(String nhc, Patient patient, String reportName, 
+        Encounter encounter, EpisodeOfCare episode, byte[] encodedBytes) {
         
-        ORUR01 oruObject = createORU(nhc, patient, reportName);
+        ORUR01 oruObject = createORU(nhc, patient, 
+            encounter, episode, reportName);
 
         String pdfInBase64 = new String(encodedBytes);
 

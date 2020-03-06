@@ -94,6 +94,7 @@ public class REDCapListenerSpringApp {
 
     private final String LOINC = "http://loinc.org";
     private final String SNOMED = "http://snomed.info/sct";
+    private final String SNOMED_FIRST_ENCOUNTER = "769681006";
 
     @Autowired
     private REDCapListenerService redcap;
@@ -147,19 +148,26 @@ public class REDCapListenerSpringApp {
                                         byte[] encoded64Bytes = Base64.getEncoder()
                                             .encode(encodedBytes);
                                         
-                                        String practId = patient.getGeneralPractitionerFirstRep().getDisplay();
-                                        String orgId = patient.getManagingOrganization().getDisplay();
+                                        String practId = patient.getGeneralPractitionerFirstRep().getReference();
+                                        String orgId = patient.getManagingOrganization().getReference();
                                         
+                                        EpisodeOfCare episode = fhir.getFirstEpisode(fhirId);
+
                                         Encounter encounter = fhir.getEncounter(fhirId, encCodes[i]);
                                         String encounterId = null;
                                         if (encounter != null)
                                             encounterId = encounter.getIdElement().getIdPart();
                                         else {
                                             Coding encCoding = new Coding().setSystem(SNOMED)
-                                                .setCode(encCodes[i]).setDisplay(encDisplays[i]); 
+                                                .setCode(encCodes[i]).setDisplay(encDisplays[i]);
+                                            
                                             encounter = fhir.createEncounter("Patient/" + fhirId, encCoding);
-                                            EpisodeOfCare episode = fhir.getFirstEpisode(fhirId);
-                                            encounter.addEpisodeOfCare(new Reference(episode.getIdElement().getValue()));
+                                            
+                                            if (episode != null)
+                                                encounter.addEpisodeOfCare(new Reference("EpisodeOfCare/" + 
+                                                    episode.getIdElement().getIdPart()));
+                                            
+                                            encounter.setSubject(new Reference("Patient/" + fhirId));
                                             
                                             encounterId = encounter.getIdElement().getValue();
 
@@ -171,7 +179,8 @@ public class REDCapListenerSpringApp {
                                         }
                                         
                                         Coding docCoding = new Coding().setSystem(LOINC)
-                                            .setCode(docCodes[i]).setDisplay(docDisplays[i]); 
+                                            .setCode(docCodes[i]).setDisplay(docDisplays[i]);
+                                        
                                         DocumentReference docRef = fhir.createDocumentReference("Patient/" + fhirId, 
                                             instruments[i], names[i], names[i], orgId, practId, "Encounter/" + encounterId,
                                             docCoding, encoded64Bytes);
@@ -189,7 +198,9 @@ public class REDCapListenerSpringApp {
                                             try {
                                                 logger.info("NHC: {}", nhc);
                 
-                                                ACK response = client.setORU((String)nhc, patient, names[i], encodedBytes);
+                                                Encounter firstEncounter = fhir.getEncounter(fhirId, SNOMED_FIRST_ENCOUNTER);
+                                                ACK response = client.setORU((String)nhc, patient, names[i], firstEncounter,
+                                                    episode, encodedBytes);
                                                 if (response != null) {
                                                     if ("AR".equalsIgnoreCase(response.getMSA().getMSA1()) )
                                                         logger.info("CODE: {} ERROR: {}", response.getMSA().getMSA1(),
