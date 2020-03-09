@@ -68,6 +68,7 @@ public class Client extends WebServiceGatewaySupport {
     private final static String DATE_FORMAT_BIRTHDATE = "yyyyMMdd";
     
 
+    private static final String SOURCE_CLINIC = "http://clinic.cat";
     private static final String SOURCE_ORU = "http://orusap.org";
     private static final String SOURCE_EPISODE = "ANE";
     private static final String SOURCE_CIP = "http://cip.org";
@@ -77,11 +78,11 @@ public class Client extends WebServiceGatewaySupport {
     @Value("${his.doctor.id}")
     private String defaultDoctorId;
     
-    public ORUR01 createORU(String nhcPatient, Patient fhirPatient, 
+    public ORUR01 createORU(Patient fhirPatient, 
         Encounter encounter, EpisodeOfCare episodeOfCare, String reportName) {
         
 
-        String sapId = "", cip = "", episode = "", placeOrder = "";
+        String sapId = "", cip = "", episode = "", placeOrder = "", nhcPatient = "";
         if (episodeOfCare != null)
             for (Identifier mpi : episodeOfCare.getIdentifier()) {
                 if (SOURCE_EPISODE.equalsIgnoreCase(mpi.getSystem()) == true)
@@ -93,6 +94,8 @@ public class Client extends WebServiceGatewaySupport {
                 sapId = mpi.getValue();
             if (SOURCE_CIP.equalsIgnoreCase(mpi.getSystem()) == true)
                 cip = mpi.getValue();
+            if (SOURCE_CLINIC.equalsIgnoreCase(mpi.getSystem()) == true)
+                nhcPatient = mpi.getValue();
         }
 
         if (encounter != null)
@@ -356,34 +359,14 @@ public class Client extends WebServiceGatewaySupport {
 
         oruObject.setORUR01PATIENTRESULT(patientResult);
         
-        // TODO
-        // Remove this snippet
-        
-        JAXBContext contextObj;
-        try {
-            contextObj = JAXBContext.newInstance(ORUR01.class);
-            Marshaller marshallerObj = contextObj.createMarshaller();  
-            marshallerObj.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);  
-            
-            StringWriter sw = new StringWriter();
-            marshallerObj.marshal(oruObject, sw);        
-            String xmlString = sw.toString();
-            
-            logger.info(xmlString);
-        } catch (JAXBException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } 
-        
         return oruObject;
     }
 
     @SuppressWarnings("unchecked")
-    public ACK setORU(String nhc, Patient patient, String reportName, 
+    public ACK setORU(Patient patient, String reportName, 
         Encounter encounter, EpisodeOfCare episode, byte[] encodedBytes) {
         
-        ORUR01 oruObject = createORU(nhc, patient, 
-            encounter, episode, reportName);
+        ORUR01 oruObject = createORU(patient, encounter, episode, reportName);
 
         String pdfInBase64 = new String(encodedBytes);
 

@@ -138,76 +138,75 @@ public class REDCapListenerSpringApp {
     
                                     logger.info("No pdf document in FHIR"); 
                                     
-                                    byte [] encodedBytes = null;
-                                    encodedBytes = redcap.exportPDF(id, instruments[i]);
+                                    byte [] encodedBytes = redcap.exportPDF(id, instruments[i]);
                                     if (encodedBytes != null) {
 
-                                        Bundle bundle = new Bundle();
-                                        bundle.setType(BundleType.TRANSACTION);        
-
-                                        byte[] encoded64Bytes = Base64.getEncoder()
-                                            .encode(encodedBytes);
-                                        
-                                        String practId = patient.getGeneralPractitionerFirstRep().getReference();
-                                        String orgId = patient.getManagingOrganization().getReference();
-                                        
                                         EpisodeOfCare episode = fhir.getFirstEpisode(fhirId);
 
-                                        Encounter encounter = fhir.getEncounter(fhirId, encCodes[i]);
-                                        String encounterId = null;
-                                        if (encounter != null)
-                                            encounterId = encounter.getIdElement().getIdPart();
-                                        else {
-                                            Coding encCoding = new Coding().setSystem(SNOMED)
-                                                .setCode(encCodes[i]).setDisplay(encDisplays[i]);
-                                            
-                                            encounter = fhir.createEncounter("Patient/" + fhirId, encCoding);
-                                            
-                                            if (episode != null)
-                                                encounter.addEpisodeOfCare(new Reference("EpisodeOfCare/" + 
-                                                    episode.getIdElement().getIdPart()));
-                                            
-                                            encounter.setSubject(new Reference("Patient/" + fhirId));
-                                            
-                                            encounterId = encounter.getIdElement().getValue();
-
-                                            bundle.addEntry()
-                                            .setFullUrl(encounter.getIdElement().getValue())
-                                            .setResource(encounter)
-                                                .getRequest()
-                                                .setMethod(HTTPVerb.POST);
-                                        }
-                                        
-                                        Coding docCoding = new Coding().setSystem(LOINC)
-                                            .setCode(docCodes[i]).setDisplay(docDisplays[i]);
-                                        
-                                        DocumentReference docRef = fhir.createDocumentReference("Patient/" + fhirId, 
-                                            instruments[i], names[i], names[i], orgId, practId, "Encounter/" + encounterId,
-                                            docCoding, encoded64Bytes);
-                                        
-                                        bundle.addEntry()
-                                        .setFullUrl(docRef.getIdElement().getValue())
-                                        .setResource(docRef)
-                                            .getRequest()
-                                            .setMethod(HTTPVerb.POST);
-                                        
-                                        fhir.execute(bundle);
-                                        
-                                        if (docRef != null) {
+                                        if (episode != null) {
                                                     
                                             try {
-                                                logger.info("NHC: {}", nhc);
-                
+
+                                                byte[] encoded64Bytes = Base64.getEncoder()
+                                                    .encode(encodedBytes);
+                                                
                                                 Encounter firstEncounter = fhir.getEncounter(fhirId, SNOMED_FIRST_ENCOUNTER);
-                                                ACK response = client.setORU((String)nhc, patient, names[i], firstEncounter,
-                                                    episode, encodedBytes);
+                                                ACK response = client.setORU(patient, names[i], firstEncounter,
+                                                    episode, encoded64Bytes);
                                                 if (response != null) {
                                                     if ("AR".equalsIgnoreCase(response.getMSA().getMSA1()) )
                                                         logger.info("CODE: {} ERROR: {}", response.getMSA().getMSA1(),
                                                             response.getERR().getERR3().getCWE2());
-                                                    else
+                                                    else {
                                                         logger.info("CODE: {} DESCRIPTION: {}",response.getMSA().getMSA1(),
                                                             response.getMSA().getMSA2() );
+                                                        Bundle bundle = new Bundle();
+                                                        bundle.setType(BundleType.TRANSACTION);        
+
+                                                        String practId = patient.getGeneralPractitionerFirstRep().getReference();
+                                                        String orgId = patient.getManagingOrganization().getReference();
+                                                        
+                                                        Encounter encounter = fhir.getEncounter(fhirId, encCodes[i]);
+                                                        String encounterId = null;
+                                                        if (encounter != null)
+                                                            encounterId = encounter.getIdElement().getIdPart();
+                                                        else {
+                                                            Coding encCoding = new Coding().setSystem(SNOMED)
+                                                                .setCode(encCodes[i]).setDisplay(encDisplays[i]);
+                                                            
+                                                            encounter = fhir.createEncounter("Patient/" + fhirId, encCoding);
+                                                            
+                                                            if (episode != null)
+                                                                encounter.addEpisodeOfCare(new Reference("EpisodeOfCare/" + 
+                                                                    episode.getIdElement().getIdPart()));
+                                                            
+                                                            encounter.setSubject(new Reference("Patient/" + fhirId));
+                                                            
+                                                            encounterId = encounter.getIdElement().getValue();
+
+                                                            bundle.addEntry()
+                                                            .setFullUrl(encounter.getIdElement().getValue())
+                                                            .setResource(encounter)
+                                                                .getRequest()
+                                                                .setMethod(HTTPVerb.POST);
+                                                        }
+                                                        
+                                                        Coding docCoding = new Coding().setSystem(LOINC)
+                                                            .setCode(docCodes[i]).setDisplay(docDisplays[i]);
+                                                        
+                                                        DocumentReference docRef = fhir.createDocumentReference("Patient/" + fhirId, 
+                                                            instruments[i], names[i], names[i], orgId, practId, "Encounter/" + encounterId,
+                                                            docCoding, encoded64Bytes);
+                                                        
+                                                        bundle.addEntry()
+                                                        .setFullUrl(docRef.getIdElement().getValue())
+                                                        .setResource(docRef)
+                                                            .getRequest()
+                                                            .setMethod(HTTPVerb.POST);
+                                                        
+                                                        fhir.execute(bundle);
+
+                                                    }
                                 
                                                 }
                                             } catch (WebServiceException e) {
