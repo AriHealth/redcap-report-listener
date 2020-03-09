@@ -146,16 +146,17 @@ public class REDCapListenerService implements ListenerService {
                 respCode = resp.getStatusLine()
                     .getStatusCode();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(resp.getEntity()
-                .getContent()));
-            result = reader.lines()
-                .collect(Collectors.joining());
-
             if (respCode != 200) {
                 manageError(respCode, resp.getStatusLine()
                     .getReasonPhrase());
                 return null;
             }        
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(resp.getEntity()
+                .getContent()));
+            result = reader.lines()
+                .collect(Collectors.joining());
+
         } catch (final Exception e) {
             logger.error(e.getMessage(), e);
             return null;
