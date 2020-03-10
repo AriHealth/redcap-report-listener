@@ -12,11 +12,14 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
+import org.hl7.fhir.dstu3.model.Encounter;
 import org.hl7.fhir.dstu3.model.Enumerations.AdministrativeGender;
+import org.hl7.fhir.dstu3.model.EpisodeOfCare;
 import org.hl7.fhir.dstu3.model.Identifier;
 import org.hl7.fhir.dstu3.model.Patient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ws.client.core.support.WebServiceGatewaySupport;
 
 import net.atos.ari.sdk.oru.ACK;
@@ -65,26 +68,42 @@ public class Client extends WebServiceGatewaySupport {
     private final static String DATE_FORMAT_BIRTHDATE = "yyyyMMdd";
     
 
+    private static final String SOURCE_CLINIC = "http://clinic.cat";
     private static final String SOURCE_ORU = "http://orusap.org";
-    private static final String SOURCE_EPISODE = "http://episode.org";
+    private static final String SOURCE_EPISODE = "ANE";
     private static final String SOURCE_CIP = "http://cip.org";
-    private static final String SOURCE_SAP_ORDER = "http://sap-internal.org";
+    private static final String SOURCE_SAP_ORDER = "HCPB";
+    // private static final String SOURCE_SAP_ORDER = "http://sap-internal.org";
+
+    @Value("${his.doctor.id}")
+    private String defaultDoctorId;
     
-    public ORUR01 createORU(String nhcPatient, Patient fhirPatient, String reportName) {
+    public ORUR01 createORU(Patient fhirPatient, 
+        Encounter encounter, EpisodeOfCare episodeOfCare, String reportName) {
         
 
-        String sapId = "", cip = "", episode = "", placeOrder = "";
+        String sapId = "", cip = "", episode = "", placeOrder = "", nhcPatient = "";
+        if (episodeOfCare != null)
+            for (Identifier mpi : episodeOfCare.getIdentifier()) {
+                if (SOURCE_EPISODE.equalsIgnoreCase(mpi.getSystem()) == true)
+                    episode = mpi.getValue();
+            }
+        
         for (Identifier mpi : fhirPatient.getIdentifier()) {
             if (SOURCE_ORU.equalsIgnoreCase(mpi.getSystem()) == true)
                 sapId = mpi.getValue();
             if (SOURCE_CIP.equalsIgnoreCase(mpi.getSystem()) == true)
                 cip = mpi.getValue();
-            if (SOURCE_EPISODE.equalsIgnoreCase(mpi.getSystem()) == true)
-                episode = mpi.getValue();
-            if (SOURCE_SAP_ORDER.equalsIgnoreCase(mpi.getSystem()) == true)
-                placeOrder = mpi.getValue();
+            if (SOURCE_CLINIC.equalsIgnoreCase(mpi.getSystem()) == true)
+                nhcPatient = mpi.getValue();
         }
-        
+
+        if (encounter != null)
+            for (Identifier mpi : encounter.getIdentifier()) {
+                if (SOURCE_SAP_ORDER.equalsIgnoreCase(mpi.getSystem()) == true)
+                    placeOrder = mpi.getValue();
+            }
+
         ORUR01 oruObject = new ORUR01();
 
         MSH msh = new MSH();
@@ -321,9 +340,10 @@ public class Client extends WebServiceGatewaySupport {
         // Producer's Reference
         obx.setOBX15("");
 
-        // String doctorSapId = fhirPatient.getGeneralPractitionerFirstRep()
-        //    .getDisplay();
-        String doctorSapId = "0000082641";
+        String doctorSapId = defaultDoctorId;
+        if (fhirPatient.getGeneralPractitionerFirstRep() != null)
+            doctorSapId = fhirPatient.getGeneralPractitionerFirstRep()
+                .getDisplay();
         
         // Responsible Observer
         obx.setOBX16(doctorSapId);
@@ -339,47 +359,14 @@ public class Client extends WebServiceGatewaySupport {
 
         oruObject.setORUR01PATIENTRESULT(patientResult);
         
-        // TODO
-        // Remove this snippet
-        
-        JAXBContext contextObj;
-        try {
-            contextObj = JAXBContext.newInstance(ORUR01.class);
-            Marshaller marshallerObj = contextObj.createMarshaller();  
-            marshallerObj.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);  
-            
-            StringWriter sw = new StringWriter();
-            marshallerObj.marshal(oruObject, sw);        
-            String xmlString = sw.toString();
-            
-            logger.info(xmlString);
-        } catch (JAXBException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } 
-        
         return oruObject;
     }
 
     @SuppressWarnings("unchecked")
-    public ACK setORU(String nhc, Patient patient, String reportName) {
+    public ACK setORU(Patient patient, String reportName, 
+        Encounter encounter, EpisodeOfCare episode, byte[] encodedBytes) {
         
-        ORUR01 oruObject = createORU(nhc, patient, reportName);
-
-        // TODO
-        // Save the file with CIP or NHC, plus date
-        
-        // Set the Base64 PDF
-        byte[] input_file = null;
-        try {
-            input_file = Files.readAllBytes(Paths.get("export.pdf"));
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            logger.error(e.getMessage());
-        }
-
-        byte[] encodedBytes = Base64.getEncoder()
-            .encode(input_file);
+        ORUR01 oruObject = createORU(patient, encounter, episode, reportName);
 
         String pdfInBase64 = new String(encodedBytes);
 

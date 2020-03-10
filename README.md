@@ -33,7 +33,7 @@ mvn clean package
 and execute
 
 ```
-java -jar target/xcare-listener.jar
+java -jar target/redcap-report-listener.jar
 ```
 
 It can also be run as:
@@ -44,11 +44,20 @@ mvn spring-boot:run
 
 ## Environment variables
 
-	ORU_URL=
-	REDCAP_URL=
+	HIS_BASE_URL=
+	HIS_USER=
+	HIS_PASSWORD=
+	REDCAP_BASE_URL=
 	REDCAP_TOKEN=
-	REDCAP_INSTRUMENT=
-	FHIR_URL=
+	REDCAP_REPORT_INSTRUMENTS=
+	REDCAP_REPORT_NAMES=
+	REDCAP_FORMAT=
+	REDCAP_TYPE=
+	REDCAP_XML_FORMAT=
+	REDCAP_XML_TYPE=
+	REDCAP_LISTENER=
+	REDCAP_LANGUAGE=
+	FHIR_BASE_URL=
     LOGGING_FOLDER=
     LOGGING_MODE=
 
@@ -57,19 +66,19 @@ mvn spring-boot:run
 Build the image:
 
 ```
-docker build -t health/xcare-listener .
+docker build -t health/redcap-report-listener .
 ```
 
 Simple deployment:
 
 ```
-docker run --name xcare-listener -d health/xcare-listener
+docker run --name redcap-report-listener -d health/redcap-report-listener
 ```
 
 Logging can be also configured using `LOGGING_FOLDER` and sharing a volume (this is useful for example for [ELK](https://www.elastic.co/elk-stack) processing). The level of the logging can be configured with `LOGGING_MODE` (dev|prod):
 
 ```
-docker run --name xcare-listener -d -v /tmp/log/xcare-listener:/log/xcare-listener -e LOGGING_FOLDER=/log/test -e LOGGING_MODE=dev health/xcare-listener
+docker run --name recap-report-listener -d -v /tmp/log/redcap-report-listener:/log/redcap-report-listener -e LOGGING_FOLDER=/log/test -e LOGGING_MODE=dev health/redcap-report-listener
 ```
 
 ## License

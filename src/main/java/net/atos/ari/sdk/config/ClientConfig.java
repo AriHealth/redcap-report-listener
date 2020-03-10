@@ -18,13 +18,13 @@ public class ClientConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientConfig.class);
 
-    @Value("${client.default-uri}")
+    @Value("${his.default-uri}")
     private String defaultUri;
 
-    @Value("${client.user.name}")
+    @Value("${his.user.name}")
     private String userName;
 
-    @Value("${client.user.password}")
+    @Value("${his.user.password}")
     private String userPassword;
 
     @Bean

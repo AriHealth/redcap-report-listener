@@ -5,11 +5,13 @@ spring:
     serialization:
       INDENT_OUTPUT: true
 
-client:
+his:
   default-uri: ${HIS_BASE_URL:https://localhost/oru}
   user:
     name: ${HIS_USER:test}
     password: ${HIS_PASSWORD:test}
+  doctor:
+    id: test
 
 redcap:
   base:
@@ -26,8 +28,17 @@ redcap:
       type:  ${REDCAP_XML_TYPE:eav}
   listener:
     timer:  ${REDCAP_LISTENER:60000}
-    
+  language: ${REDCAP_LANGUAGE:EN}
+
+# 769681006 - First patient encounter
+# 275647001 - Discharged from follow-up
 fhir:
   base:
-    url: ${FHIR_BASE_URL:http://localhost:8080/hapi-fhir/baseDstu3}
+    url: ${FHIR_BASE_URL:http://localhost:8080/hapi-fhir-jpaserver/fhir/}
+  encounter:
+    codes: ${FHIR_ENCOUNTER_CODES:769681006,275647001}
+    displays: ${FHIR_ENCOUNTER_DISPLAYS:First patient encounter,Discharged from follow-up}
+  document:
+    codes: ${FHIR_DOCUMENT_CODES:47039-3,28655-9}
+    displays: ${FHIR_DOCUMENT_DISPLAYS:Hospital Admission history and physical note,Discharge Summary from Responsible Clinician}
 
