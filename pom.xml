@@ -12,7 +12,7 @@
 
     <groupId>net.atos.ari.sdk</groupId>
     <artifactId>redcap-report-listener</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>redcap-report-listener</name>
@@ -61,7 +61,7 @@
         <url>https://github.com/AriHealth/redcap-report-listener.git</url>
         <connection>scm:git:https://github.com/AriHealth/redcap-report-listener.git</connection>
         <developerConnection>scm:git:https://github.com/AriHealth/redcap-report-listener.git</developerConnection>
-        <tag>0.1.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
