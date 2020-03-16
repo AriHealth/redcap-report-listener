@@ -147,8 +147,13 @@ public class REDCapListenerService implements ListenerService {
                     .getStatusCode();
 
             if (respCode != 200) {
-                manageError(respCode, resp.getStatusLine()
-                    .getReasonPhrase());
+                BufferedReader reader = new BufferedReader(new InputStreamReader(resp.getEntity()
+                    .getContent()));
+                result = reader.lines()
+                    .collect(Collectors.joining());
+                logger.error("REDCap import petition invalid code: {} {}", respCode, 
+                    resp.getStatusLine().getReasonPhrase());
+                manageError(respCode, result);
                 return null;
             }        
 
@@ -210,8 +215,13 @@ public class REDCapListenerService implements ListenerService {
                 .getStatusCode();
 
             if (respCode != 200) {
-                manageError(respCode, resp.getStatusLine()
-                    .getReasonPhrase());
+                BufferedReader reader = new BufferedReader(new InputStreamReader(resp.getEntity()
+                    .getContent()));
+                String result = reader.lines()
+                    .collect(Collectors.joining());
+                logger.error("REDCap import petition invalid code: {} {}", respCode, 
+                    resp.getStatusLine().getReasonPhrase());
+                manageError(respCode, result);
                 return null;
             }
 
